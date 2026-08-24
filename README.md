@@ -16,11 +16,11 @@ Most columns had a small proportion of missing values (under 3%). The exception 
 
 An initial attempt used a Logistic Regression classifier to predict the missing `transmission` values from `make`, `year`, `trim`, `model`, and `body`. This produced a seemingly excellent accuracy of 96.49%, but a precision of 0.0 — revealing that the model was simply predicting the majority class (automatic) every time, masked by a strong class imbalance:
 
-![Transmission distribution before imputation](nb_images/transmission_before_imputation.png)
+![Transmission distribution before imputation](transmission_before_imputation.png)
 
-Applying `class_weight='balanced'` dropped accuracy to 65.90% while precision only rose to 0.06, confirming the model could not reliably identify the minority class. Given this result, missing values were filled with the mode (`automatic`) instead — a simpler, cheaper, and equally reliable approach given the data's actual distribution:
+Applying `class_weight='balanced'` dropped accuracy to 65.90% while precision only rose to 0.06, confirming the model could not reliably identify the minority class. Given that a full classification model failed to outperform a naive baseline, mode imputation (`automatic`) was chosen instead: it is simpler than fitting a linear/logistic model, computationally cheaper, and — since the model added no real predictive power over the majority class anyway — equally reliable given the data's actual distribution:
 
-![Transmission distribution after mode imputation](nb_images/transmission_after_imputation.png)
+![Transmission distribution after mode imputation](transmission_after_imputation.png)
 
 ### Column selection and leakage prevention
 
@@ -47,7 +47,7 @@ Three regression models were trained to predict `sellingprice`:
 | LightGBM | ~0.884 | ~1,900 | ~3,100 |
 | XGBoost | ~0.919 | ~1,530 | ~2,500 |
 
-![Model comparison across R², MAE, and RMSE](nb_images/model_comparison.png)
+![Model comparison across R², MAE, and RMSE](model_comparison.png)
 
 Linear Regression underperformed significantly, largely because label-encoded nominal variables introduce an artificial ordinal relationship that linear models are sensitive to. Both gradient boosting models performed much better, with XGBoost coming out ahead.
 
@@ -61,23 +61,23 @@ XGBoost was optimized using `RandomizedSearchCV` (15 iterations, 3-fold cross-va
 
 Model stability was confirmed through repeated 5-fold cross-validation, with R² consistently between 0.943 and 0.947 across runs:
 
-![5-fold cross-validation results](nb_images/cross_validation.png)
+![5-fold cross-validation results](cross_validation.png)
 
 A learning curve analysis further supported this: the gap between training and validation R² narrowed from ~0.08 to ~0.02 as the training set size increased, with validation performance still trending upward at the largest sample size tested — suggesting the model is not overfit and could benefit from additional data:
 
-![Learning curve for the optimized XGBoost model](nb_images/learning_curve.png)
+![Learning curve for the optimized XGBoost model](learning_curve.png)
 
 ## Feature Importance
 
 `year`, `make`, `odometer`, and `body` emerged as the most influential predictors, consistent with domain expectations around vehicle depreciation and market segmentation:
 
-![XGBoost feature importance](nb_images/feature_importance.png)
+![XGBoost feature importance](feature_importance.png)
 
 ## Residual Analysis
 
 The residual plot for the optimized model shows no systematic bias (errors centered around zero), but reveals heteroscedasticity — error variance increases at higher predicted prices, with some notable underestimation outliers in the $40,000–$90,000 range:
 
-![Residuals of the optimized XGBoost model](nb_images/residuals_plot.png)
+![Residuals of the optimized XGBoost model](residuals_plot.png)
 
 This suggests the model is more reliable for low- and mid-value vehicles than for high-value ones, likely reflecting their lower representation in the training data.
 
@@ -105,13 +105,12 @@ This suggests the model is more reliable for low- and mid-value vehicles than fo
 ```
 .
 ├── README.md
-├── notebook.ipynb
-└── nb_images/
-    ├── transmission_before_imputation.png
-    ├── transmission_after_imputation.png
-    ├── model_comparison.png
-    ├── cross_validation.png
-    ├── learning_curve.png
-    ├── feature_importance.png
-    └── residuals_plot.png
+├── Used-Vehicle-Price-Prediction.ipynb
+├── transmission_before_imputation.png
+├── transmission_after_imputation.png
+├── model_comparison.png
+├── cross_validation.png
+├── learning_curve.png
+├── feature_importance.png
+└── residuals_plot.png
 ```
